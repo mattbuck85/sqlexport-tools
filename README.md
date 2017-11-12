@@ -4,7 +4,7 @@ This module provides functionality to export data to excel by passing a cursor i
 ```python
   import MySQLdb
   from sqlexport_tools.export_tools import DatabaseExport, XlsxWriterTool
-  mysql_connection = MySQLdb.connect(host='localhost', user='myuser',passwd='mypass', db='mydb', use_unicode=True)
+  mysql_connection = MySQLdb.connect(host='localhost', user='myuser', passwd='mypass', db='mydb', use_unicode=True)
   exporter1 = DatabaseExport(mysql_connection.cursor(), 'mytable')
   exporter2 = DatabaseExport(mysql_connection.cursor(), 'myothertable')
   writer = XlsxWriterTool(filename='export.xlsx', default_date_format='mm/dd/yy')
@@ -23,7 +23,7 @@ class QuestionAdmin(admin.ModelAdmin, AdminExportMixin):
     model = models.Question
     list_display = ('question_text', 'pub_date')
     export_date_format = 'mm/dd/yy'
-    actions = ['export_excel','export_csv']
+    actions = ['export_excel', 'export_csv']
 
 admin.site.register(models.Question, QuestionAdmin)
 
