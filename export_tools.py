@@ -10,6 +10,9 @@ class DatabaseExportHelperDuplicates(Exception):
     pass
 
 class DatabaseExport(object):
+    '''Controller class for the document writer tools below.
+       Pass it any python database cursor and get a column dump.
+       Tested with MSSQL and MySQL.'''
 
     def __init__(self, cursor, table, custom_sql=None):
         self.cursor = cursor
@@ -34,13 +37,15 @@ class DatabaseExport(object):
             column_list.append(column_description[0])
         return column_list
 
+    '''Instantiate a writer class and pass it to export'''
     def export(self,writer,**kwargs):
         writer.perform(self.column_list, self.rows, **kwargs)
 
 class CsvWriterTool(object):
+    '''When passed to a DatabaseExport.export, perform a dump to CSV'''
 
-    def __init__(self, filename_prefix, dialect='excel'):
-        self.filename_prefix = filename_prefix
+    def __init__(self, file_handle, dialect='excel', **kwargs):
+        self.file_handle = file_handle
         self.dialect = dialect
 
     def get_row_dicts(self, column_list, rows):
@@ -52,13 +57,9 @@ class CsvWriterTool(object):
     def perform(self, column_list, rows, **kwargs):
         self.export(column_list, rows)
 
-    @classmethod
-    def build_filename(self, filename_prefix):
-        return '%s%s' % (filename_prefix,'_export.csv')
-
-    def export(self,column_list,rows):
+    def export(self, column_list, rows):
         self.row_dicts = self.get_row_dicts(column_list, rows)
-        self.csvfile = open('%s' % self.build_filename(self.filename_prefix),'wb')
+        self.csvfile = self.file_handle
         table_dict_writer = csv.DictWriter(self.csvfile, fieldnames=column_list, dialect=self.dialect)
         table_dict_writer.writeheader()
         for row_dict in self.row_dicts:
@@ -67,25 +68,26 @@ class CsvWriterTool(object):
     def close(self):
         self.csvfile.close()
 
+'''Default parameters for XlsxWriter.  Unpack into the constructor.'''
+xlsx_default_kwargs = {
+                        'string_encoding':'windows-1252',
+                        'default_date_format':'YYYY-MM-DD',
+                        'column_format':{'bold':True},
+                      }
+
 class XlsxWriterTool(object):
+    '''When passed to a DatabseExport.export, perform a dump to xlsx
+       Will make any null columns blank.  Experimental vlookup feature for
+       multi-worksheet dumps.  Workbook kwargs: http://xlsxwriter.readthedocs.io/workbook.html'''
 
     def __init__(self,filename, string_encoding=None, blank_nulls=True, column_format=None, **workbook_kwargs):
         self.string_encoding = string_encoding
         self.blank_nulls = blank_nulls
         self.filename = filename
         self.workbook = xlsxwriter.Workbook(self.filename,workbook_kwargs)
-        if not column_format:
-            column_format = {'bold':True}
+        self.date_format = workbook_kwargs.get('default_date_format',None)
         self.column_format = self.workbook.add_format(column_format)
-        try:
-            self.date_format = workbook_kwargs['default_date_format']
-        except:
-            self.date_format = None
         self.worksheets = {}
-
-    @staticmethod
-    def build_filename(self, *args, **kwargs):
-        return self.filename
 
     def get_num_format(self, format_string):
         if format_string:
@@ -96,8 +98,6 @@ class XlsxWriterTool(object):
         return num_format
 
     def create_worksheet(self, name):
-        if not name:
-            name = self.filename_prefix
         self.worksheets[name] = self.workbook.add_worksheet(name)
         return name
 
@@ -112,7 +112,7 @@ class XlsxWriterTool(object):
                 table.append(list_row)
             columns.insert(vlookup['column_insert_index'], vlookup['column_name'])
         else:
-            table = map(list, rows)
+            table = list(map(list, rows))
         table.insert(0, columns)
         self.table = table
 
@@ -149,12 +149,10 @@ class XlsxWriterTool(object):
                     self.write(sheet_name, i, j, cell, self.column_format)
                 elif self.blank_nulls and (cell == None or cell == 'None'):
                     self.write(sheet_name, i, j, ' ')
-                elif self.string_encoding and isinstance(cell, str):
-                    self.write(sheet_name, i, j, cell.decode(self.string_encoding))
                 elif self.date_format and (isinstance(cell, date) or isinstance(cell, datetime)):
                     self.write(sheet_name, i, j, cell, self.date_format)
                 else:
-                    self.write(sheet_name, i, j, cell)
+                    self.write(sheet_name, i, j, str(cell))
 
 #Reference another sheet in a vlookup on the export.  Experimental.
 class XlsxVlookup(object):
@@ -175,8 +173,3 @@ class XlsxVlookup(object):
 
 
 
-xlsx_default_kwargs = {
-                        'string_encoding':'windows-1252',
-                        'datetime_format_string':'YYYY-MM-DD HH:MM:SS',
-                        'date_format_string':'YYYY-MM-DD'
-                      }
