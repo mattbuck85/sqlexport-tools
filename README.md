@@ -29,4 +29,4 @@ admin.site.register(models.Question, QuestionAdmin)
 
 ```
 
-This enables two actions: export_excel and export_csv.  For excel, the export_date_format can be specified as a parameter of the class.
+This enables two actions: export_excel and export_csv.  For excel, the export_date_format can be specified as a parameter of the class.  If you use list filters, these will be appended to the output filename to keep multiple exports organized.  Sorting is also preserved.
