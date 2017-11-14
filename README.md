@@ -12,7 +12,7 @@ This module provides functionality to export data to excel by passing a cursor i
   exporter2.export(writer2, sheet_name='MyOtherTable')
     
 ```
-This will dump 'mytable' and 'myothertable' to an xlsx file with a mm/dd/yy date format.  The DatabaseExporter constructor also takes a paramter custom_sql where you can use a custom sql query.
+This will dump 'mytable' and 'myothertable' to an xlsx file with a mm/dd/yy date format.  The DatabaseExporter constructor also takes a parameter custom_sql where you can use a custom sql query.
 
 I think the biggest feature here is that this is integrated with the Django Admin Site as a Mixin.  Behold:
 
