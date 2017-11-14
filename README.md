@@ -8,7 +8,7 @@ This module provides functionality to export data to excel by passing a cursor i
   exporter1 = DatabaseExport(mysql_connection.cursor(), 'mytable')
   exporter2 = DatabaseExport(mysql_connection.cursor(), 'myothertable')
   writer = XlsxWriterTool(filename='export.xlsx', default_date_format='mm/dd/yy')
-  exporter.export(writer, sheet_name='MyTable')
+  exporter1.export(writer, sheet_name='MyTable')
   exporter2.export(writer2, sheet_name='MyOtherTable')
     
 ```
