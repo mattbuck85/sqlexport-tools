@@ -1,6 +1,10 @@
 from sqlexport_tools.export_tools import XlsxWriterTool, CsvWriterTool
 from django.http import HttpResponse
 
+'''Extract fields from a queryset.  Accept kwarg caller
+   which allows a calling (IE modeladmin) object's method
+   to be appended to the output table
+'''
 def extract_qs_fields(qs, fields, caller=None):
     resolved_rows = []
     for row in qs:
@@ -22,6 +26,10 @@ def extract_qs_fields(qs, fields, caller=None):
     return (fields, resolved_rows)
     
 
+'''This class provides a mixin to export data from the 
+   admin interface.  Can export CSV or XLSX.  Filters are appended
+   to the filename to help organize exported files.
+'''
 class AdminExportMixin(object):
 
     export_method = 'export_excel'
@@ -32,9 +40,9 @@ class AdminExportMixin(object):
 
     def __resolve_filters_to_model(self, obj, filter_chain, key, value):
         related_class = obj.__class__
-        final_lookup = filter_chain.pop(-1)
+        final_lookup = filter_chain.pop()
         if final_lookup in self.lookup_final_keywords:
-            final_keyword = filter_chain.pop(-1)
+            final_keyword = filter_chain.pop()
             final_lookup = "%s__%s" % (final_keyword, final_lookup)
             filter_chain.append(final_keyword)
         else:
@@ -68,6 +76,7 @@ class AdminExportMixin(object):
                     obj_name = "%s%s%s" % (obj_name,"__",_obj_name)
         return "%s%s%s" % (self.model.__name__, obj_name, extension)
 
+    #export the data in memory in either xlsx or csv
     def export(self, request, queryset, tool, content_type, extension='.xlsx'):
         try:
             from StringIO import BytesIO
