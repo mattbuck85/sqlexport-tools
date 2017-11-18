@@ -26,12 +26,12 @@ def extract_qs_fields(qs, fields, caller=None):
     return (fields, resolved_rows)
     
 
-'''This class provides a mixin to export data from the 
-   admin interface.  Can export CSV or XLSX.  Filters are appended
-   to the filename to help organize exported files.
-'''
-class AdminExportMixin(object):
 
+class AdminExportMixin(object):
+    '''This class provides a mixin to export data from the 
+       admin interface.  Can export CSV or XLSX.  Filters are appended
+       to the filename to help organize exported files.
+    '''
     export_method = 'export_excel'
     export_date_format = 'mm/dd/yyyy'
     lookup_final_keywords = ('gte','gt','exact','lte','lt','contains',
@@ -101,6 +101,6 @@ class AdminExportMixin(object):
         return self.export(request, queryset, tool, 'text/csv', '.csv')
     export_csv.short_description = "Export selected to CSV"
 
-    def resolve_list_fields(self,qs):
+    def resolve_list_fields(self, qs):
         fields = list(self.list_display)
         return extract_qs_fields(qs, fields, self)
